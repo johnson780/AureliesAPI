@@ -58,13 +58,13 @@ namespace Aurelius_API
 
                 string companyID = JwtToken.GetCompanyIdFromToken(decryptedToken);
                 string userID = JwtToken.GetUserIdFromToken(decryptedToken);
-                string password = JwtToken.GetPasswordFromToken(decryptedToken);
+                //string password = JwtToken.GetPasswordFromToken(decryptedToken);
 
                 request.Properties["EncryptedToken"] = encryptedToken;
                 request.Properties["DecryptedToken"] = decryptedToken;
                 request.Properties["CompanyID"] = companyID;
                 request.Properties["UserID"] = userID;
-                request.Properties["Password"] = password;
+                //request.Properties["Password"] = password;
 
                 // Optionally update request header with decrypted token
                 // request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", decryptedToken);

@@ -226,6 +226,7 @@
     <Compile Include="ModelAPI\Doctor\GetAllDoctorSearch.cs" />
     <Compile Include="ModelAPI\Doctor\ListAllDoctor.cs" />
     <Compile Include="ModelAPI\GeneralAPIResponse.cs" />
+    <Compile Include="ModelAPI\Login\LoginResponse.cs" />
     <Compile Include="ModelAPI\Transaction\GetAllSearchTransaction.cs" />
     <Compile Include="ModelAPI\User\AddUser.cs" />
     <Compile Include="ModelAPI\User\DeleteUser.cs" />
@@ -233,6 +234,7 @@
     <Compile Include="ModelAPI\User\GetByUserID.cs" />
     <Compile Include="ModelAPI\User\ListUserIDName.cs" />
     <Compile Include="ModelAPI\User\UpdateUser.cs" />
+    <Compile Include="ModelPortal\Login\UserLoginDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -309,10 +311,8 @@
     <Folder Include="Controllers\Transaction\" />
     <Folder Include="Controllers\User\" />
     <Folder Include="Data\" />
-    <Folder Include="ModelAPI\Login\" />
     <Folder Include="ModelPortal\Company\" />
     <Folder Include="ModelPortal\Doctor\" />
-    <Folder Include="ModelPortal\Login\" />
     <Folder Include="ModelPortal\Transaction\" />
     <Folder Include="ModelPortal\User\" />
     <Folder Include="Views\Authentication\" />
