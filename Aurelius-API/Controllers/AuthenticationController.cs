@@ -10,6 +10,7 @@ using System.Data.Odbc;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 
 
@@ -42,8 +43,9 @@ namespace Aurelius_API.Controllers
 
                     using (var command = new OdbcCommand(query, connection))
                     {
-                        command.Parameters.Add("@username", model.Username);
-                        command.Parameters.Add("@password", model.Password);
+
+                        command.Parameters.Add(new OdbcParameter("@username", model.Username));
+                        command.Parameters.Add(new OdbcParameter("@password", model.Password));
 
                         using (OdbcDataReader reader = (OdbcDataReader)await command.ExecuteReaderAsync())
                         { 
@@ -68,17 +70,20 @@ namespace Aurelius_API.Controllers
                         }
                     }
 
-                    if(user.FROLE.ToLower()== "user" || user.FROLE.ToLower() == "admin")
+                    if (user.FROLE.ToLower() == "user" || user.FROLE.ToLower() == "admin")
                     {
-                        if(user.FCOMPID.ToLower() != model.Company.ToLower())
+                        var compIds = user.FCOMPID.ToLower().Split(',');
+
+                        // Check if model.Company is in the compIds array
+                        if (!compIds.Contains(model.Company.ToLower()))
                         {
                             response.Success = false;
                             response.Message = "Invalid Username/Password/Company";
                             return response;
                         }
                     }
-                 
-                    if(Convert.ToInt32(user.FTEMPPWD) == 1)
+
+                    if (Convert.ToInt32(user.FTEMPPWD) == 1)
                     {
                         // Get the created date and time
                         DateTime Cdatetime = DateTime.ParseExact(faudtdate + " " + faudttime, "yyyyMMdd HHmmss", null);
@@ -99,11 +104,12 @@ namespace Aurelius_API.Controllers
                         {
                             // Authentication successful
                            
-                           var authToken = JwtToken.GenerateJwtToken(user.FCOMPID, user.FID);
+                           var authToken = JwtToken.GenerateJwtToken(model.Company, user.FID);
+                            var encryptedToken = JwtToken.AesEncryption.EncryptToken(authToken);
 
                             LoginResponse responseData = new LoginResponse
                             {
-                                AuthToken = authToken,
+                                AuthToken = encryptedToken,
                                 //RefreshToken = refreshToken.Token,
                                 User = user,
                             };
@@ -136,10 +142,12 @@ namespace Aurelius_API.Controllers
                     else
                     {
                         // Authentication successful for temppwd 0
-                       var authToken = JwtToken.GenerateJwtToken(user.FCOMPID,user.FID);
+                       var authToken = JwtToken.GenerateJwtToken(model.Company,user.FID);
+                        var encryptedToken = JwtToken.AesEncryption.EncryptToken(authToken);
+
                         LoginResponse responseData = new LoginResponse
                         {
-                            AuthToken = authToken,
+                            AuthToken = encryptedToken,
                             //RefreshToken = refreshToken.Token,
                             User = user,
                         };
@@ -181,7 +189,8 @@ namespace Aurelius_API.Controllers
         public async Task<List<GetCompany>> FetchCompany()
         {
             var compList = new List<GetCompany>();
-
+            var CompanyID = HttpContext.Current.Items["CompanyID"]?.ToString();
+            var username = HttpContext.Current.Items["UserID"]?.ToString();
             try
             {
                 using (var connection = new OdbcConnection(_connectionString))

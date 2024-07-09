@@ -9,16 +9,16 @@ namespace Aurelius_API.ModelAPI.Doctor
     {
         public class AddFacilityCharges
         {
-            public string DoctorCode { get; set; }
-            public string DoctorName { get; set; }
-            public string Contract { get; set; }
-            public string ContractPeriod { get; set; }
-            public string GMIPeriod { get; set; }
+            public string FDOCCODE { get; set; }
+            public string FDOCNAME { get; set; }
+            public string FCONTRACT { get; set; }
+            public string FSTARTDATE { get; set; }
+            public string FENDDATE { get; set; }
             public string GMIAmount { get; set; }
             public string AdministrativeChargesRate { get; set; }
             public string FacilityCharges { get; set; }
-            public string UpdatedBy { get; set; }
-            public string UpdatedDateTime { get; set; }
+            public string FAUDTUSER { get; set; }
+            public string FAUDTTIME { get; set; }
 
         }
     }

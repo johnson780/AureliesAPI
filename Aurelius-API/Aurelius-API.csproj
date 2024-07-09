@@ -202,6 +202,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
+    <Compile Include="Controllers\Doctor\DoctorController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
@@ -219,12 +220,16 @@
     <Compile Include="ModelAPI\Doctor\AddDoctorContract.cs" />
     <Compile Include="ModelAPI\Doctor\AddFacilityCharges.cs" />
     <Compile Include="ModelAPI\Doctor\AddGuranteeIncome.cs" />
+    <Compile Include="ModelAPI\Doctor\DoctorAdminCharges.cs" />
+    <Compile Include="ModelAPI\Doctor\DoctorContract.cs" />
+    <Compile Include="ModelAPI\Doctor\DoctorFacilityCharges.cs" />
+    <Compile Include="ModelAPI\Doctor\DoctorGMI.cs" />
     <Compile Include="ModelAPI\Doctor\EditAdminCharges.cs" />
     <Compile Include="ModelAPI\Doctor\EditDoctorContract.cs" />
     <Compile Include="ModelAPI\Doctor\EditFacilityCharges.cs" />
     <Compile Include="ModelAPI\Doctor\EditGuranteeIncome.cs" />
     <Compile Include="ModelAPI\Doctor\GetAllDoctorSearch.cs" />
-    <Compile Include="ModelAPI\Doctor\ListAllDoctor.cs" />
+    <Compile Include="ModelAPI\Doctor\DoctorInfo.cs" />
     <Compile Include="ModelAPI\GeneralAPIResponse.cs" />
     <Compile Include="ModelAPI\Login\LoginResponse.cs" />
     <Compile Include="ModelAPI\Transaction\GetAllSearchTransaction.cs" />
@@ -306,7 +311,6 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Controllers\Company\" />
-    <Folder Include="Controllers\Doctor\" />
     <Folder Include="Controllers\Login\" />
     <Folder Include="Controllers\Transaction\" />
     <Folder Include="Controllers\User\" />

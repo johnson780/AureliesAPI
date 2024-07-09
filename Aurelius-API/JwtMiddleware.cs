@@ -41,9 +41,9 @@ namespace Aurelius_API
                 {
                     decryptedToken = JwtToken.AesEncryption.DecryptToken(encryptedToken);
                 }
-                catch
+                catch(Exception ex)
                 {
-                    return request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Invalid Token");
+                    return request.CreateErrorResponse(HttpStatusCode.Unauthorized, ex.Message);
                 }
 
                 if (JwtToken.IsTokenExpired(decryptedToken))

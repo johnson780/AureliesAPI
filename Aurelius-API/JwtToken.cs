@@ -162,6 +162,7 @@ namespace Aurelius_API
 
             public static string DecryptToken(string encryptedToken)
             {
+
                 byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
                 byte[] ivBytes = Convert.FromBase64String(iv);
                 byte[] encryptedBytes = Convert.FromBase64String(encryptedToken);
