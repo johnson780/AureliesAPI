@@ -44,8 +44,8 @@ namespace Aurelius_API.Controllers
                     using (var command = new OdbcCommand(query, connection))
                     {
 
-                        command.Parameters.Add(new OdbcParameter("@username", model.Username));
-                        command.Parameters.Add(new OdbcParameter("@password", model.Password));
+                        command.Parameters.Add(new OdbcParameter("@username", model.Username.Trim()));
+                        command.Parameters.Add(new OdbcParameter("@password", model.Password.Trim()));
 
                         using (OdbcDataReader reader = (OdbcDataReader)await command.ExecuteReaderAsync())
                         { 
@@ -136,7 +136,7 @@ namespace Aurelius_API.Controllers
                         {
                             response.Success = false;
                             response.Message = "Temporary password expired";
-                            return (response);
+                            return response;
                         }
                     }
                     else

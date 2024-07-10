@@ -239,6 +239,10 @@
     <Compile Include="ModelAPI\User\GetByUserID.cs" />
     <Compile Include="ModelAPI\User\ListUserIDName.cs" />
     <Compile Include="ModelAPI\User\UpdateUser.cs" />
+    <Compile Include="ModelPortal\Doctor\PostDoctorAdminChargesDto.cs" />
+    <Compile Include="ModelPortal\Doctor\PostDoctorContractDto.cs" />
+    <Compile Include="ModelPortal\Doctor\PostDoctorFacilityChargesDto.cs" />
+    <Compile Include="ModelPortal\Doctor\PostDoctorGMIDto.cs" />
     <Compile Include="ModelPortal\Login\UserLoginDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -316,7 +320,6 @@
     <Folder Include="Controllers\User\" />
     <Folder Include="Data\" />
     <Folder Include="ModelPortal\Company\" />
-    <Folder Include="ModelPortal\Doctor\" />
     <Folder Include="ModelPortal\Transaction\" />
     <Folder Include="ModelPortal\User\" />
     <Folder Include="Views\Authentication\" />
