@@ -25,7 +25,6 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,9 +45,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+      <HintPath>..\packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="EncryptDecrypt, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\EncryptDecrypt.dll</HintPath>
+    </Reference>
+    <Reference Include="MailKit, Version=3.2.0.0, Culture=neutral, PublicKeyToken=4e064fe7c44a8f1b, processorArchitecture=MSIL">
+      <HintPath>..\packages\MailKit.3.2.0\lib\net48\MailKit.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -66,12 +71,14 @@
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=7.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Tokens.7.6.2\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
+    <Reference Include="MimeKit, Version=3.2.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
+      <HintPath>..\packages\MimeKit.3.2.0\lib\net48\MimeKit.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=7.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.7.6.2\lib\net472\System.IdentityModel.Tokens.Jwt.dll</HintPath>
@@ -86,6 +93,10 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.1\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
+    <Reference Include="System.Text.Encoding.CodePages, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encoding.CodePages.4.5.1\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
+    </Reference>
     <Reference Include="System.Text.Encodings.Web, Version=4.0.5.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Encodings.Web.4.7.2\lib\net461\System.Text.Encodings.Web.dll</HintPath>
     </Reference>
@@ -98,13 +109,14 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Routing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
@@ -156,7 +168,6 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.9\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="WebGrease">
       <Private>True</Private>
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
@@ -173,7 +184,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\BundleConfig.cs" />
-    <Compile Include="App_Start\BundleConfig2.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
@@ -205,37 +215,33 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
-    <Compile Include="Controllers\AuthenticationController.cs" />
-    <Compile Include="Controllers\Doctor\DoctorController.cs" />
+    <Compile Include="Controllers\Company\CompanyController.cs" />
+    <Compile Include="Controllers\Configuration\ConfigurationController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\User\UserController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="JwtMiddleware.cs" />
     <Compile Include="JwtToken.cs" />
+    <Compile Include="ModelAPI\Configuration\ConfigurationModel.cs" />
+    <Compile Include="ModelAPI\GeneralAPIResponse.cs" />
     <Compile Include="ModelAPI\Company\AddCompany.cs" />
     <Compile Include="ModelAPI\Company\DeleteCompany.cs" />
     <Compile Include="ModelAPI\Company\GetAllSearchCompany.cs" />
     <Compile Include="ModelAPI\Company\GetByCompanyID.cs" />
-    <Compile Include="ModelAPI\Company\ListCompanyIDName.cs" />
     <Compile Include="ModelAPI\Company\UpdateCompany.cs" />
     <Compile Include="ModelAPI\Doctor\AddAdminCharges.cs" />
     <Compile Include="ModelAPI\Doctor\AddDoctorContract.cs" />
     <Compile Include="ModelAPI\Doctor\AddFacilityCharges.cs" />
     <Compile Include="ModelAPI\Doctor\AddGuranteeIncome.cs" />
-    <Compile Include="ModelAPI\Doctor\DoctorAdminCharges.cs" />
-    <Compile Include="ModelAPI\Doctor\DoctorContract.cs" />
-    <Compile Include="ModelAPI\Doctor\DoctorFacilityCharges.cs" />
-    <Compile Include="ModelAPI\Doctor\DoctorGMI.cs" />
     <Compile Include="ModelAPI\Doctor\EditAdminCharges.cs" />
     <Compile Include="ModelAPI\Doctor\EditDoctorContract.cs" />
     <Compile Include="ModelAPI\Doctor\EditFacilityCharges.cs" />
     <Compile Include="ModelAPI\Doctor\EditGuranteeIncome.cs" />
     <Compile Include="ModelAPI\Doctor\GetAllDoctorSearch.cs" />
-    <Compile Include="ModelAPI\Doctor\DoctorInfo.cs" />
-    <Compile Include="ModelAPI\GeneralAPIResponse.cs" />
-    <Compile Include="ModelAPI\Login\LoginResponse.cs" />
+    <Compile Include="ModelAPI\Doctor\ListAllDoctor.cs" />
     <Compile Include="ModelAPI\Transaction\GetAllSearchTransaction.cs" />
     <Compile Include="ModelAPI\User\AddUser.cs" />
     <Compile Include="ModelAPI\User\DeleteUser.cs" />
@@ -243,11 +249,7 @@
     <Compile Include="ModelAPI\User\GetByUserID.cs" />
     <Compile Include="ModelAPI\User\ListUserIDName.cs" />
     <Compile Include="ModelAPI\User\UpdateUser.cs" />
-    <Compile Include="ModelPortal\Doctor\PostDoctorAdminChargesDto.cs" />
-    <Compile Include="ModelPortal\Doctor\PostDoctorContractDto.cs" />
-    <Compile Include="ModelPortal\Doctor\PostDoctorFacilityChargesDto.cs" />
-    <Compile Include="ModelPortal\Doctor\PostDoctorGMIDto.cs" />
-    <Compile Include="ModelPortal\Login\UserLoginDto.cs" />
+    <Compile Include="ModelPortal\Company\AddCompanyPortal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -318,15 +320,17 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\Company\" />
+    <Folder Include="Controllers\Doctor\" />
     <Folder Include="Controllers\Login\" />
     <Folder Include="Controllers\Transaction\" />
-    <Folder Include="Controllers\User\" />
-    <Folder Include="Data\" />
-    <Folder Include="ModelPortal\Company\" />
+    <Folder Include="ModelAPI\Login\" />
+    <Folder Include="ModelPortal\Doctor\" />
+    <Folder Include="ModelPortal\Login\" />
     <Folder Include="ModelPortal\Transaction\" />
     <Folder Include="ModelPortal\User\" />
-    <Folder Include="Views\Authentication\" />
+    <Folder Include="Views\AddCompany\" />
+    <Folder Include="Views\Configuration\" />
+    <Folder Include="Views\User\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\bootstrap.min.js.map" />

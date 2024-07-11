@@ -8,6 +8,5 @@ namespace Aurelius_API.ModelAPI.Company
     public class DeleteCompany
     {
         public string CompanyID { get; set; }
-        public string CompanyName { get; set; }
     }
 }

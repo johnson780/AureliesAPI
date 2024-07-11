@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace Aurelius_API.ModelAPI.User
+namespace Aurelius_API.ModelPortal.Company
 {
-
-    public class ListUserModel
+    public class AddCompanyPortal
     {
-        public string FID { get; set; }
-        public string FUSERNAME { get; set; }
-        public string FFULLNAME { get; set; }
-        public string FROLE { get; set; }
+        public string FCOMPID { get; set; }
+        public string FCOMPNAME { get; set; }
         public string FACTIVE { get; set; }
         public string FAUDTUSER { get; set; }
         public string FAUDTDATE { get; set; }
         public string FAUDTTIME { get; set; }
     }
-
 }

@@ -18,6 +18,8 @@ namespace Aurelius_API
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            // Add the JWT middleware globally
+            //GlobalConfiguration.Configuration.MessageHandlers.Add(new JwtMiddleware());
         }
     }
 }

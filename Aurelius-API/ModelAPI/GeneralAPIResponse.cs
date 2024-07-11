@@ -13,4 +13,6 @@ namespace Aurelius_API.ModelAPI
 
         public string Message { get; set; } = "";
     }
+
+
 }
