@@ -7,9 +7,9 @@ namespace Aurelius_API.ModelAPI.Company
 {
     public class UpdateCompany
     {
-        public string CompanyID { get; set; }
-        public string CompanyName { get; set; }
-        public string Status { get; set; }
+        public string FCOMPID { get; set; }
+        public string FCOMPNAME { get; set; }
+        public string FACTIVE { get; set; }
 
     }
 }

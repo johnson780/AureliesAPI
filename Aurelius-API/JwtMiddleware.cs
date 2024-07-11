@@ -60,11 +60,18 @@ namespace Aurelius_API
                 string userID = JwtToken.GetUserIdFromToken(decryptedToken);
                 string password = JwtToken.GetPasswordFromToken(decryptedToken);
 
-                request.Properties["EncryptedToken"] = encryptedToken;
-                request.Properties["DecryptedToken"] = decryptedToken;
-                request.Properties["CompanyID"] = companyID;
-                request.Properties["UserID"] = userID;
-                request.Properties["Password"] = password;
+                //// Setting properties in request
+                HttpContext.Current.Items["EncryptedToken"] = encryptedToken;
+                HttpContext.Current.Items["DecryptedToken"] = decryptedToken;
+                HttpContext.Current.Items["CompanyID"] = companyID;
+                HttpContext.Current.Items["UserID"] = userID;
+                HttpContext.Current.Items["Password"] = password;
+
+                //request.Properties["EncryptedToken"] = encryptedToken;
+                //request.Properties["DecryptedToken"] = decryptedToken;
+                //request.Properties["CompanyID"] = companyID;
+                //request.Properties["UserID"] = userID;
+                //request.Properties["Password"] = password;
 
                 // Optionally update request header with decrypted token
                 // request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", decryptedToken);
@@ -77,8 +84,8 @@ namespace Aurelius_API
         {
             var path = request.RequestUri.AbsolutePath;
 
-            return path.StartsWith("/api/itemmaster")
-                || path.StartsWith("/api/invoices")
+            return path.StartsWith("ap")
+                //|| path.StartsWith("/api/invoices")
                 // Add other paths as per your requirement
                 ;
         }
