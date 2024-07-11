@@ -17,5 +17,15 @@ namespace Aurelius_API.ModelAPI.Company
         public string FAUDTDATE { get; set; }
         public string FAUDTTIME { get; set; }
     }
-  
+
+    public class GetCompany
+    {
+        public string fcompid { get; set; }
+        public string fcompname { get; set; }
+        public string factive { get; set; }
+        public string faudtuser { get; set; }
+        public string faudtdate { get; set; }
+        public string faudttime { get; set; }
+
+    }
 }

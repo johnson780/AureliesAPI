@@ -14,7 +14,7 @@ namespace Aurelius_API
         private static readonly string secret = GenerateRandomSecretKey(32);
         private static readonly string iv = GenerateRandomIV();
 
-        public static string GenerateJwtToken(string companyID, string userID, string password)
+        public static string GenerateJwtToken(string companyID, string userID)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret));
@@ -25,7 +25,7 @@ namespace Aurelius_API
                 {
                     new Claim("CompanyID", companyID),
                     new Claim("UserID", userID),
-                    new Claim("Password", password)
+                    //new Claim("Password", password)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(60),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
@@ -95,16 +95,16 @@ namespace Aurelius_API
             return jwtToken.Claims.FirstOrDefault(claim => claim.Type == "UserID")?.Value;
         }
 
-        public static string GetPasswordFromToken(string token)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+        //public static string GetPasswordFromToken(string token)
+        //{
+        //    var tokenHandler = new JwtSecurityTokenHandler();
+        //    var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
 
-            if (jwtToken == null)
-                return null;
+        //    if (jwtToken == null)
+        //        return null;
 
-            return jwtToken.Claims.FirstOrDefault(claim => claim.Type == "Password")?.Value;
-        }
+        //    return jwtToken.Claims.FirstOrDefault(claim => claim.Type == "Password")?.Value;
+        //}
 
         private static string GenerateRandomSecretKey(int length)
         {
@@ -162,6 +162,7 @@ namespace Aurelius_API
 
             public static string DecryptToken(string encryptedToken)
             {
+
                 byte[] keyBytes = Encoding.UTF8.GetBytes(secret);
                 byte[] ivBytes = Convert.FromBase64String(iv);
                 byte[] encryptedBytes = Convert.FromBase64String(encryptedToken);
