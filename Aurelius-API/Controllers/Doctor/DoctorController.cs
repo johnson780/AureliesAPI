@@ -3,15 +3,19 @@ using Aurelius_API.ModelAPI.Company;
 using Aurelius_API.ModelAPI.Doctor;
 using Aurelius_API.ModelPortal.Doctor;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Odbc;
 using System.Data.SqlClient;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -28,161 +32,244 @@ namespace Aurelius_API.Controllers.Doctor
             _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         }
 
-        //        [Route("GetDoctorList")]
-        //        [HttpGet]
-        //        public async Task<GeneralAPIResponse<List<GetAllDoctorSearch>>> SearchDoctor(
-        //[FromUri] string doctor = null,
-        //[FromUri] string contract = null,
-        //[FromUri] decimal? dateFrom = null,
-        //[FromUri] decimal? dateTo = null)
-        //        {
-        //            var CompanyID = HttpContext.Current.Items["CompanyID"]?.ToString();
-        //            var username = HttpContext.Current.Items["UserID"]?.ToString();
-        //            var response = new GeneralAPIResponse<List<GetAllDoctorSearch>>();
+        [Route("GetDoctorList")]
+        [HttpGet]
+        public async Task<GeneralAPIResponse<List<GetAllDoctorSearch>>> SearchDoctor(
+[FromUri] string doctor = null,
+[FromUri] string contract = null,
+[FromUri] decimal? dateFrom = null,
+[FromUri] decimal? dateTo = null)
+        {
+            var CompanyID = HttpContext.Current.Items["CompanyID"]?.ToString();
+            var username = HttpContext.Current.Items["UserID"]?.ToString();
+            var response = new GeneralAPIResponse<List<GetAllDoctorSearch>>();
+            decimal currentDate = Convert.ToDecimal(DateTime.Now.ToString("yyyyMMdd"));
 
-        //            try
-        //            {
-        //                string userId = _globalService.GetUserId();
-        //                string custId = getCustId(userId);
-        //                string dbName = getDbName(userId);
+            try
+            {
 
-        //                string connectionString = _defaultConnectionString;
-        //                connectionString = connectionString.Replace("{dbName}", dbName);
+                using (var connection = new OdbcConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    string query = @"
+    WITH DocContract AS (
+        SELECT 
+            ""FDOCCODE"", ""FCONTRACT"", ""FSTARTDATE"", ""FENDDATE"",
+            ROW_NUMBER() OVER (PARTITION BY ""FDOCCODE"" ORDER BY ""FSTARTDATE"" DESC) AS rn
+        FROM 
+            ""TBLDOCCONTRACT""
+        WHERE 
+            ? BETWEEN ""FSTARTDATE"" AND ""FENDDATE""
+    ),
+    DocAdminCharge AS (
+        SELECT 
+            ""FDOCCODE"", ""FAMOUNT"",
+            ROW_NUMBER() OVER (PARTITION BY ""FDOCCODE"" ORDER BY ""FSTARTDATE"" DESC) AS rn
+        FROM 
+            ""TBLDOCADMINCHARGE""
+        WHERE 
+            ? BETWEEN ""FSTARTDATE"" AND ""FENDDATE""
+    ),
+    DocFacCharge AS (
+        SELECT 
+            ""FDOCCODE"", ""FAMOUNT"",
+            ROW_NUMBER() OVER (PARTITION BY ""FDOCCODE"" ORDER BY ""FSTARTDATE"" DESC) AS rn
+        FROM 
+            ""TBLDOCFACCHARGE""
+        WHERE 
+            ? BETWEEN ""FSTARTDATE"" AND ""FENDDATE""
+    ),
+    DocGmi AS (
+        SELECT 
+            ""FDOCCODE"", ""FAMOUNT"",""FSTARTDATE"", ""FENDDATE"",
+            ROW_NUMBER() OVER (PARTITION BY ""FDOCCODE"" ORDER BY ""FSTARTDATE"" DESC) AS rn
+        FROM 
+            ""TBLDOCGMI""
+        WHERE 
+            ? BETWEEN ""FSTARTDATE"" AND ""FENDDATE""
+    )
+    SELECT 
+        doclist.""FDOCCODE"",
+        doclist.""FDOCNAME"",
+        doclist.""FAUDTDATE"",
+        doclist.""FAUDTTIME"",
+        doclist.""FAUDTUSER"",
+        doccontract.""FCONTRACT"",
+        doccontract.""FSTARTDATE"",
+        doccontract.""FENDDATE"",
+        docadmincharge.""FAMOUNT"" AS AdminChargeAmount,
+        docfaccharge.""FAMOUNT"" AS FacChargeAmount,
+        docgmi.""FAMOUNT"" AS GmiAmount,
+        docgmi.""FSTARTDATE"" As GmiStartDate,
+        docgmi.""FENDDATE"" As GmiEndDate
+    FROM 
+        ""TBLDOCLIST"" doclist
+    LEFT JOIN 
+        DocContract doccontract 
+    ON 
+        doclist.""FDOCCODE"" = doccontract.""FDOCCODE"" AND doccontract.rn = 1
+    LEFT JOIN 
+        DocAdminCharge docadmincharge 
+    ON 
+        doclist.""FDOCCODE"" = docadmincharge.""FDOCCODE"" AND docadmincharge.rn = 1
+    LEFT JOIN 
+        DocFacCharge docfaccharge 
+    ON 
+        doclist.""FDOCCODE"" = docfaccharge.""FDOCCODE"" AND docfaccharge.rn = 1
+    LEFT JOIN 
+        DocGmi docgmi 
+    ON 
+        doclist.""FDOCCODE"" = docgmi.""FDOCCODE"" AND docgmi.rn = 1
+    WHERE 
+        1 = 1 ";
 
-        //                var companyResponse = await FetchCompanyTrans();
-        //                var companyIds = companyResponse.Data.Select(c => c.FCOMPID).ToList();
+                    // Append conditions for startDate and endDate if both are provided
+                    if (dateFrom.HasValue && dateTo.HasValue)
+                    {
+                        query += " AND doccontract.\"FSTARTDATE\" <= ? AND doccontract.\"FENDDATE\" >= ?";
+                    }
+                    else if (dateFrom.HasValue)
+                    {
+                        query += " AND doccontract.\"FENDDATE\" >= ?";
+                    }
+                    else if (dateTo.HasValue)
+                    {
+                        query += " AND doccontract.\"FSTARTDATE\" <= ?";
+                    }
 
-        //                using (var connection = new SqlConnection(connectionString))
-        //                {
-        //                    await connection.OpenAsync();
-        //                    string dateFromDecimal = "";
-        //                    string dateToDecimal = "";
-        //                    string query = @"
-        //              SELECT FCOMPID, FEINVNO, FDOCDATE, FMODULE, FBUYERNAME, SUM(FSUBTOTAL) AS FSUBTOTAL, FSTATUS, FDOCSTATUS, FREFETCH, FINVCURRCODE 
-        //                FROM TRANSDT 
-        //                WHERE FCOMPID IN (" + string.Join(",", companyIds.Select(id => "'" + id + "'")) + ")";
+                    // Append condition for searchText if provided
+                    if (!string.IsNullOrEmpty(doctor))
+                    {
+                        query += " AND (doclist.\"FDOCCODE\" LIKE ? OR doclist.\"FDOCNAME\" LIKE ?)";
+                    }
 
-        //                    if (!string.IsNullOrEmpty(companyId))
-        //                    {
-        //                        query += " AND FCOMPID = @FCOMPID";
-        //                    }
-        //                    if (!string.IsNullOrEmpty(custVendorName))
-        //                    {
-        //                        query += " AND FBUYERNAME = @FBUYERNAME";
-        //                    }
+                    // Append condition for contractType if provided
+                    if (!string.IsNullOrEmpty(contract))
+                    {
+                        query += " AND doccontract.\"FCONTRACT\" = ?";
+                    }
 
-        //                    if (dateFrom.HasValue)
-        //                    {
-        //                        query += " AND FDOCDATE >= @DateFrom";
-        //                    }
-        //                    if (dateTo.HasValue)
-        //                    {
-        //                        query += " AND FDOCDATE <= @DateTo";
-        //                    }
+                    query += @"
+    GROUP BY 
+        doclist.""FDOCCODE"", 
+        doclist.""FDOCNAME"", 
+        doclist.""FAUDTDATE"", 
+        doclist.""FAUDTTIME"", 
+        doclist.""FAUDTUSER"", 
+        doccontract.""FCONTRACT"", 
+        doccontract.""FSTARTDATE"", 
+        doccontract.""FENDDATE"", 
+        docadmincharge.""FAMOUNT"", 
+        docfaccharge.""FAMOUNT"", 
+        docgmi.""FAMOUNT"",
+         docgmi.""FSTARTDATE"",
+         docgmi.""FENDDATE""
+ORDER BY 
+doccontract.""FENDDATE"" DESC;";
 
-        //                    if (!string.IsNullOrEmpty(documentType))
-        //                        query += " AND FMODULE = @FMODULE";
-        //                    if (!string.IsNullOrEmpty(documentStatus))
-        //                    {
-        //                        if (documentStatus.ToLower() == "refetched")
-        //                        {
-        //                            query += " AND FSTATUS = 'Pending' AND FREFETCH = '1'";
-        //                        }
-        //                        else
-        //                        {
-        //                            query += " AND FSTATUS = @FSTATUS AND (FREFETCH != '1' OR FREFETCH IS NULL)";
-        //                        }
-        //                    }
-        //                    //else
-        //                    //{
-        //                    //    query += " AND (FREFETCH != '1' OR FREFETCH IS NULL)";
+                    using (var command = new OdbcCommand(query, connection))
+                    {
+                        int paramIndex = 0; // Counter for parameter indexing
 
-        //                    //}
+                        command.Parameters.Add(new OdbcParameter($"@currentdate1", currentDate));
+                        command.Parameters.Add(new OdbcParameter($"@currentdate2", currentDate));
+                        command.Parameters.Add(new OdbcParameter($"@currentdate3", currentDate));
+                        command.Parameters.Add(new OdbcParameter($"@currentdate4", currentDate));
+
+                        // Add parameters for startDate and endDate if both are provided
+                        if (dateTo != null && dateFrom != null)
+                        {
+                            command.Parameters.Add(new OdbcParameter($"@startDate{paramIndex}", dateTo));
+                            command.Parameters.Add(new OdbcParameter($"@endDate{paramIndex++}", dateFrom));
+                        }
+                        else if (dateFrom != null)
+                        {
+                            command.Parameters.Add(new OdbcParameter($"@endDate{paramIndex++}", dateFrom));
+                        }
+                        else if (dateTo != null)
+                        {
+                            command.Parameters.Add(new OdbcParameter($"@startDate{paramIndex++}", dateTo));
+                        }
+
+                        // Add parameters for searchText if provided
+                        if (!string.IsNullOrEmpty(doctor))
+                        {
+                            command.Parameters.Add(new OdbcParameter($"@docCode{paramIndex++}", $"%{doctor}%"));
+                            command.Parameters.Add(new OdbcParameter($"@docName{paramIndex++}", $"%{doctor}%"));
+                        }
+
+                        // Add parameter for contractType if provided
+                        if (!string.IsNullOrEmpty(contract))
+                        {
+                            command.Parameters.Add(new OdbcParameter($"@contract{paramIndex++}", contract));
+                        }
+
+                        int doctorCount = 0;
+
+                        using (OdbcDataReader reader = (OdbcDataReader)await command.ExecuteReaderAsync())
+                        {
+                            if (reader.HasRows)
+                            {
+                                var searchResponseList = new List<GetAllDoctorSearch>();
+
+                                while (reader.Read())
+                                {
+
+                                    var searchResponse = new GetAllDoctorSearch
+                                    {
+                                        FDOCCODE = reader["FDOCCODE"].ToString(),
+                                        FDOCNAME = reader["FDOCNAME"].ToString(),
+                                        FAUDTDATE = reader["FAUDTDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FAUDTDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                        FAUDTTIME = reader["FAUDTTIME"] == DBNull.Value ? string.Empty : ConvertTo12HourFormat(reader["FAUDTTIME"].ToString()),
+                                        FAUDTUSER = reader["FAUDTUSER"].ToString(),
+                                        FCONTRACT = reader["FCONTRACT"].ToString(),
+                                        CONTRACTSTARTDATE = reader["FSTARTDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FSTARTDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                        CONTRACTENDDATE = reader["FENDDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FENDDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                        GMISTARTDATE = reader["GmiStartDate"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["GmiStartDate"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                        GMIENDDATE = reader["GmiEndDate"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["GmiEndDate"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
+                                        GMIAMOUNT = reader["GmiAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["GmiAmount"]).ToString("N2", CultureInfo.InvariantCulture),
+                                       ADMINCHARGE = reader["AdminChargeAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["AdminChargeAmount"]).ToString("N2", CultureInfo.InvariantCulture),
+                                        FACILITYCHARGE = reader["FacChargeAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["AdminChargeAmount"]).ToString("N2", CultureInfo.InvariantCulture),
+                         
+                                    };
+
+                                    searchResponseList.Add(searchResponse);
+                                }
+                              
+
+                                doctorCount = searchResponseList.Count();
+
+                                if (doctorCount <= 0)
+                                {
+                                    response.Success = false;
+                                    response.Message = "No doctor found";
+                                }
+                                else
+                                {
+                                    response.Data = searchResponseList;
+                                    response.Success = true;
+                                    response.Message = doctorCount + " Doctor(s) found.";
+                                }
 
 
+                            }
+                            else
+                            {
+                                response.Success = false;
+                                response.Message = "No doctor found";
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Success = false;
+                response.Message = ex.Message;
+            }
 
-        //                    query += " AND FCONSOLIDATE = 'N'";
-        //                    query += " GROUP BY FCOMPID, FEINVNO,FDOCDATE, FMODULE, FBUYERNAME, FSTATUS, FDOCSTATUS, FREFETCH,FINVCURRCODE  ORDER BY FCOMPID, FDOCDATE DESC";
-        //                    SqlCommand command = new SqlCommand(query, connection);
-
-        //                    // Add parameters to the query
-        //                    if (!string.IsNullOrEmpty(companyId))
-        //                        command.Parameters.AddWithValue("@FCOMPID", companyId);
-        //                    if (!string.IsNullOrEmpty(custVendorName))
-        //                        command.Parameters.AddWithValue("@FBUYERNAME", Encrypt(custId, custVendorName));
-        //                    if (dateFrom.HasValue)
-        //                        command.Parameters.AddWithValue("@DateFrom", Convert.ToDecimal(dateFrom));
-        //                    if (dateTo.HasValue)
-        //                        command.Parameters.AddWithValue("@DateTo", Convert.ToDecimal(dateTo));
-        //                    if (!string.IsNullOrEmpty(documentType))
-        //                        command.Parameters.AddWithValue("@FMODULE", documentType);
-        //                    if (!string.IsNullOrEmpty(documentStatus) && documentStatus.ToLower() != "refetched")
-        //                        command.Parameters.AddWithValue("@FSTATUS", documentStatus);
-
-        //                    int transactionCount = 0;
-
-        //                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-        //                    {
-        //                        if (reader.HasRows)
-        //                        {
-        //                            var searchResponseList = new List<SearchResponse>();
-
-        //                            while (reader.Read())
-        //                            {
-
-        //                                var searchResponse = new SearchResponse
-        //                                {
-        //                                    FCOMPID = reader["FCOMPID"].ToString(),
-        //                                    FEINVNO = Decrypt(custId, reader["FEINVNO"].ToString()),
-        //                                    FDOCDATE = reader["FDOCDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FDOCDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
-        //                                    FMODULE = reader["FMODULE"].ToString(),
-        //                                    FBUYERNAME = Decrypt(custId, reader["FBUYERNAME"].ToString()),
-        //                                    FSUBTOTAL = reader["FSUBTOTAL"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["FSUBTOTAL"]).ToString("N2", CultureInfo.InvariantCulture),
-        //                                    FSTATUS = reader["FSTATUS"].ToString(),
-        //                                    FDOCSTATUS = reader["FDOCSTATUS"].ToString(),
-        //                                    FREFETCH = reader["FREFETCH"].ToString(),
-        //                                    FINVCURRCODE = Decrypt(custId, reader["FINVCURRCODE"].ToString())
-        //                                };
-
-        //                                searchResponseList.Add(searchResponse);
-        //                            }
-        //                            if (!string.IsNullOrEmpty(documentNo))
-        //                            {
-        //                                searchResponseList = searchResponseList.Where(r => r.FEINVNO.Contains(documentNo, StringComparison.OrdinalIgnoreCase)).ToList();
-        //                            }
-
-        //                            transactionCount = searchResponseList.Count();
-
-        //                            if (transactionCount <= 0)
-        //                            {
-        //                                response.Success = false;
-        //                                response.Message = "No transaction found";
-        //                            }
-        //                            else
-        //                            {
-        //                                response.Data = searchResponseList;
-        //                                response.Success = true;
-        //                                response.Message = transactionCount + " Transaction(s) found.";
-        //                            }
-
-
-        //                        }
-        //                        else
-        //                        {
-        //                            response.Success = false;
-        //                            response.Message = "No transaction found";
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                response.Success = false;
-        //                response.Message = ex.Message;
-        //            }
-
-        //            return response;
-        //        }
+            return response;
+        }
 
         [Route("GetDoctorInfo")]
         [HttpGet]

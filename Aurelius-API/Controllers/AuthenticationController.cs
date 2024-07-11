@@ -6,12 +6,16 @@ using Microsoft.Ajax.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Data.Odbc;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using System.Web.UI.WebControls;
+using EncryptDecrypt;
 
 
 namespace Aurelius_API.Controllers
@@ -28,7 +32,9 @@ namespace Aurelius_API.Controllers
 
         [Route("Login")]
         [HttpPost]
-        public async Task<GeneralAPIResponse<LoginResponse>> Login(UserLoginDto model) { 
+        public async Task<GeneralAPIResponse<LoginResponse>> Login(UserLoginDto model) {
+           Encryption encrypt = new Encryption();
+
             var response = new GeneralAPIResponse<LoginResponse>();
             decimal faudtdate = 0;
             string faudttime = "";
@@ -43,7 +49,7 @@ namespace Aurelius_API.Controllers
 
                     using (var command = new OdbcCommand(query, connection))
                     {
-
+                        //var password = encrypt.Encrypt(model.Password.Trim());
                         command.Parameters.Add(new OdbcParameter("@username", model.Username.Trim()));
                         command.Parameters.Add(new OdbcParameter("@password", model.Password.Trim()));
 
@@ -116,9 +122,48 @@ namespace Aurelius_API.Controllers
 
                             int totalComp = 0, totalUser = 0, totalDoctor=0, totalTransDay = 0, totalTransMonth = 0;
                             //here for retreive the dashboard details
-                            //if role==admin || user else super....
+                            if (user.FROLE.ToLower() == "user" || user.FROLE.ToLower() == "admin")
+                            {
+                                OdbcDataAdapter dCompany = new OdbcDataAdapter(@"SELECT * FROM TBLCOMPANY WHERE ""FCOMPID"" = '" + model.Company + "' AND FACTIVE = 1", connection);
+                                OdbcDataAdapter dUser = new OdbcDataAdapter(@"SELECT * FROM TBLUSER WHERE ""FACTIVE"" = 1", connection);
+                                OdbcDataAdapter dDoctor= new OdbcDataAdapter(@"SELECT * FROM TBLDOCLIST", connection);
 
-                            GetDashboardDetailsDto userDashboard = new GetDashboardDetailsDto();
+                                DataTable dtCompany = new DataTable();
+                                DataTable dtUser = new DataTable();
+                                DataTable dtDoctor = new DataTable();
+                                dCompany.Fill(dtCompany); dUser.Fill(dtUser); dDoctor.Fill(dtDoctor);
+                                foreach (DataRow row in dtUser.Rows)
+                                {
+                                    string fcompid = row.Field<string>("FCOMPID");
+
+                                    string[] fcompidArray = fcompid.ToLower().Split(',');
+
+                                    // Check if model.Company is in the fcompid array
+                                    if (fcompidArray.Contains(model.Company.ToLower()))
+                                    {
+                                        totalUser += 1;
+                                    }
+                                }
+                                totalDoctor = dtDoctor.Rows.Count;
+                                totalComp = dtCompany.Rows.Count;
+                            }
+                            else //superadmin dashboard
+                            {
+                                OdbcDataAdapter dCompany = new OdbcDataAdapter(@"SELECT * FROM TBLCOMPANY WHERE ""FACTIVE"" = 1", connection);
+                                OdbcDataAdapter dUser = new OdbcDataAdapter(@"SELECT * FROM TBLUSER WHERE ""FACTIVE"" = 1", connection);
+                                OdbcDataAdapter dDoctor = new OdbcDataAdapter(@"SELECT * FROM TBLDOCLIST", connection);
+
+                                DataTable dtCompany = new DataTable();
+                                DataTable dtUser = new DataTable();
+                                DataTable dtDoctor = new DataTable();
+                                dCompany.Fill(dtCompany); dUser.Fill(dtUser); dDoctor.Fill(dtDoctor);
+
+                                totalDoctor = dtDoctor.Rows.Count;
+                                totalComp = dtCompany.Rows.Count;
+                                totalUser = dtUser.Rows.Count;
+                            }
+
+                           GetDashboardDetailsDto userDashboard = new GetDashboardDetailsDto();
                             userDashboard.TotalDoctor = totalDoctor;
                             userDashboard.TotalCompany = totalComp;
                             userDashboard.TotalUser = totalUser;
@@ -153,8 +198,48 @@ namespace Aurelius_API.Controllers
                         };
                         int totalComp = 0, totalUser = 0, totalDoctor = 0, totalTransDay = 0, totalTransMonth = 0;
                         //here for retreive the dashboard details
-                        //if role==admin || user else super
-                        //
+                        if (user.FROLE.ToLower() == "user" || user.FROLE.ToLower() == "admin")
+                        {
+                            OdbcDataAdapter dCompany = new OdbcDataAdapter(@"SELECT * FROM TBLCOMPANY WHERE ""FCOMPID"" = '" + model.Company + "' AND FACTIVE = 1", connection);
+                            OdbcDataAdapter dUser = new OdbcDataAdapter(@"SELECT * FROM TBLUSER WHERE ""FACTIVE"" = 1", connection);
+                            OdbcDataAdapter dDoctor = new OdbcDataAdapter(@"SELECT * FROM TBLDOCLIST", connection);
+
+                            DataTable dtCompany = new DataTable();
+                            DataTable dtUser = new DataTable();
+                            DataTable dtDoctor = new DataTable();
+                            dCompany.Fill(dtCompany); dUser.Fill(dtUser); dDoctor.Fill(dtDoctor);
+
+                            foreach (DataRow row in dtUser.Rows)
+                            {
+                                string fcompid = row.Field<string>("FCOMPID");
+
+                                string[] fcompidArray = fcompid.ToLower().Split(',');
+
+                                // Check if model.Company is in the fcompid array
+                                if (fcompidArray.Contains(model.Company.ToLower()))
+                                {
+                                    totalUser += 1;
+                                }
+                            }
+                            totalDoctor = dtDoctor.Rows.Count;
+                            totalComp = dtCompany.Rows.Count;
+                        }
+                        else //superadmin dashboard
+                        {
+                            OdbcDataAdapter dCompany = new OdbcDataAdapter(@"SELECT * FROM TBLCOMPANY WHERE ""FACTIVE"" = 1", connection);
+                            OdbcDataAdapter dUser = new OdbcDataAdapter(@"SELECT * FROM TBLUSER WHERE ""FACTIVE"" = 1", connection);
+                            OdbcDataAdapter dDoctor = new OdbcDataAdapter(@"SELECT * FROM TBLDOCLIST", connection);
+
+                            DataTable dtCompany = new DataTable();
+                            DataTable dtUser = new DataTable();
+                            DataTable dtDoctor = new DataTable();
+                            dCompany.Fill(dtCompany); dUser.Fill(dtUser); dDoctor.Fill(dtDoctor);
+
+                            totalDoctor = dtDoctor.Rows.Count;
+                            totalComp = dtCompany.Rows.Count;
+                            totalUser = dtUser.Rows.Count;
+                        }
+
                         GetDashboardDetailsDto userDashboard = new GetDashboardDetailsDto();
                         userDashboard.TotalDoctor = totalDoctor;
                         userDashboard.TotalCompany = totalComp;
@@ -196,7 +281,7 @@ namespace Aurelius_API.Controllers
                 using (var connection = new OdbcConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    string query = "SELECT * FROM TBLCOMPANY";
+                    string query = @"SELECT * FROM TBLCOMPANY WHERE ""FACTIVE"" = 1";
 
                     using (var command = new OdbcCommand(query, connection))
                     using (OdbcDataReader reader = (OdbcDataReader)await command.ExecuteReaderAsync())
