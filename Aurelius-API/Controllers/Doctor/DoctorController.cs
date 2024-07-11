@@ -94,6 +94,7 @@ namespace Aurelius_API.Controllers.Doctor
         doclist.""FAUDTDATE"",
         doclist.""FAUDTTIME"",
         doclist.""FAUDTUSER"",
+        docuser.""FFULLNAME"" AS FullName,
         doccontract.""FCONTRACT"",
         doccontract.""FSTARTDATE"",
         doccontract.""FENDDATE"",
@@ -104,6 +105,10 @@ namespace Aurelius_API.Controllers.Doctor
         docgmi.""FENDDATE"" As GmiEndDate
     FROM 
         ""TBLDOCLIST"" doclist
+    LEFT JOIN 
+        TBLUSER docuser
+    ON 
+        doclist.""FAUDTUSER"" = docuser.""FID""
     LEFT JOIN 
         DocContract doccontract 
     ON 
@@ -140,7 +145,7 @@ namespace Aurelius_API.Controllers.Doctor
                     // Append condition for searchText if provided
                     if (!string.IsNullOrEmpty(doctor))
                     {
-                        query += " AND (doclist.\"FDOCCODE\" LIKE ? OR doclist.\"FDOCNAME\" LIKE ?)";
+                        query += " AND (LOWER(doclist.\"FDOCCODE\") LIKE LOWER(?) OR LOWER(doclist.\"FDOCNAME\") LIKE LOWER(?))";
                     }
 
                     // Append condition for contractType if provided
@@ -156,6 +161,7 @@ namespace Aurelius_API.Controllers.Doctor
         doclist.""FAUDTDATE"", 
         doclist.""FAUDTTIME"", 
         doclist.""FAUDTUSER"", 
+        docuser.""FFULLNAME"",
         doccontract.""FCONTRACT"", 
         doccontract.""FSTARTDATE"", 
         doccontract.""FENDDATE"", 
@@ -194,8 +200,8 @@ doccontract.""FENDDATE"" DESC;";
                         // Add parameters for searchText if provided
                         if (!string.IsNullOrEmpty(doctor))
                         {
-                            command.Parameters.Add(new OdbcParameter($"@docCode{paramIndex++}", $"%{doctor}%"));
-                            command.Parameters.Add(new OdbcParameter($"@docName{paramIndex++}", $"%{doctor}%"));
+                            command.Parameters.Add(new OdbcParameter($"@docCode{paramIndex++}", $"%{doctor.Trim()}%"));
+                            command.Parameters.Add(new OdbcParameter($"@docName{paramIndex++}", $"%{doctor.Trim()}%"));
                         }
 
                         // Add parameter for contractType if provided
@@ -221,7 +227,7 @@ doccontract.""FENDDATE"" DESC;";
                                         FDOCNAME = reader["FDOCNAME"].ToString(),
                                         FAUDTDATE = reader["FAUDTDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FAUDTDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
                                         FAUDTTIME = reader["FAUDTTIME"] == DBNull.Value ? string.Empty : ConvertTo12HourFormat(reader["FAUDTTIME"].ToString()),
-                                        FAUDTUSER = reader["FAUDTUSER"].ToString(),
+                                        FAUDTUSER = reader["FULLNAME"].ToString(),
                                         FCONTRACT = reader["FCONTRACT"].ToString(),
                                         CONTRACTSTARTDATE = reader["FSTARTDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FSTARTDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
                                         CONTRACTENDDATE = reader["FENDDATE"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["FENDDATE"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
@@ -229,7 +235,7 @@ doccontract.""FENDDATE"" DESC;";
                                         GMIENDDATE = reader["GmiEndDate"] == DBNull.Value ? string.Empty : DateTime.ParseExact(reader["GmiEndDate"].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"),
                                         GMIAMOUNT = reader["GmiAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["GmiAmount"]).ToString("N2", CultureInfo.InvariantCulture),
                                        ADMINCHARGE = reader["AdminChargeAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["AdminChargeAmount"]).ToString("N2", CultureInfo.InvariantCulture),
-                                        FACILITYCHARGE = reader["FacChargeAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["AdminChargeAmount"]).ToString("N2", CultureInfo.InvariantCulture),
+                                        FACILITYCHARGE = reader["FacChargeAmount"] == DBNull.Value ? "0.00" : Convert.ToDecimal(reader["FacChargeAmount"]).ToString("N2", CultureInfo.InvariantCulture),
                          
                                     };
 
@@ -346,7 +352,8 @@ doccontract.""FENDDATE"" DESC;";
         SELECT TBLDOCCONTRACT.*, TBLUSER.""FFULLNAME""
         FROM TBLDOCCONTRACT
         LEFT JOIN TBLUSER ON TBLDOCCONTRACT.""FAUDTUSER""= TBLUSER.""FID""
-        WHERE TBLDOCCONTRACT.""FDOCCODE"" = ?";
+        WHERE TBLDOCCONTRACT.""FDOCCODE"" = ? 
+        ORDER BY TBLDOCCONTRACT.""FENDDATE"" DESC";
 
                     using (var command = new OdbcCommand(query, connection))
                     {
@@ -401,7 +408,8 @@ doccontract.""FENDDATE"" DESC;";
         SELECT TBLDOCGMI.*, TBLUSER.""FFULLNAME""
         FROM TBLDOCGMI
         LEFT JOIN TBLUSER ON TBLDOCGMI.""FAUDTUSER""= TBLUSER.""FID""
-        WHERE TBLDOCGMI.""FDOCCODE"" = ?";
+        WHERE TBLDOCGMI.""FDOCCODE"" = ?
+        ORDER BY TBLDOCGMI.""FENDDATE"" DESC";
 
                     using (var command = new OdbcCommand(query, connection))
                     {
@@ -456,7 +464,8 @@ doccontract.""FENDDATE"" DESC;";
         SELECT TBLDOCADMINCHARGE.*, TBLUSER.""FFULLNAME""
         FROM TBLDOCADMINCHARGE
         LEFT JOIN TBLUSER ON TBLDOCADMINCHARGE.""FAUDTUSER""= TBLUSER.""FID""
-        WHERE TBLDOCADMINCHARGE.""FDOCCODE"" = ?";
+        WHERE TBLDOCADMINCHARGE.""FDOCCODE"" = ?
+        ORDER BY TBLDOCADMINCHARGE.""FENDDATE"" DESC";
 
                     using (var command = new OdbcCommand(query, connection))
                     {
@@ -513,7 +522,9 @@ doccontract.""FENDDATE"" DESC;";
         SELECT TBLDOCFACCHARGE.*, TBLUSER.""FFULLNAME""
         FROM TBLDOCFACCHARGE
         LEFT JOIN TBLUSER ON TBLDOCFACCHARGE.""FAUDTUSER""= TBLUSER.""FID""
-        WHERE TBLDOCFACCHARGE.""FDOCCODE"" = ?";
+        WHERE TBLDOCFACCHARGE.""FDOCCODE"" = ?
+        ORDER BY TBLDOCFACCHARGE.""FENDDATE"" DESC";
+
 
                     using (var command = new OdbcCommand(query, connection))
                     {
@@ -1278,8 +1289,8 @@ doccontract.""FENDDATE"" DESC;";
 
                             // Insert new record into TBLDOCFACCHARGE
                             string insertFacChargeQuery = @"
-                        INSERT INTO TBLDOCADMINCHARGE (""FID"", ""FDOCCODE"", ""FSTARTDATE"", ""FENDDATE"", ""FAMOUNT"", ""FAUDTUSER"",""FAUDTDATE"", ""FAUDTTIME"") 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        INSERT INTO TBLDOCFACCHARGE (""FID"", ""FDOCCODE"", ""FSTARTDATE"", ""FENDDATE"", ""FAMOUNT"", ""FAUDTUSER"",""FAUDTDATE"", ""FAUDTTIME"") 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                             using (var insertFacChargeCommand = new OdbcCommand(insertFacChargeQuery, connection))
                             {
                                 insertFacChargeCommand.Parameters.Add(new OdbcParameter("@FID", formattedNumber));
@@ -1313,7 +1324,7 @@ doccontract.""FENDDATE"" DESC;";
         {
             if (DateTime.TryParseExact(time, "HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
             {
-                return dateTime.ToString("hh:mm tt", CultureInfo.InvariantCulture); // 12-hour format with AM/PM
+                return dateTime.ToString("h:mm tt", CultureInfo.InvariantCulture); // 12-hour format with AM/PM
             }
             return time; 
         }

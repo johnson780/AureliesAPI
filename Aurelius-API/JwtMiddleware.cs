@@ -79,6 +79,10 @@ namespace Aurelius_API
 
             return path.StartsWith("/api/authentication/getcompany")
                 || path.StartsWith("/api/doctor/savedoctorcontract")
+                                || path.StartsWith("/api/doctor/savedoctorgmi")
+                || path.StartsWith("/api/doctor/savedoctoradmincharges")
+                || path.StartsWith("/api/doctor/savedoctorfacilitycharges")
+
                 // Add other paths as per your requirement
                 ;
         }
